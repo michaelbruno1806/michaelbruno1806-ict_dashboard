@@ -43,10 +43,10 @@ def get_meraki_devices():
                         hotel_name = hotel
                         break
 
-                device_type = 'Other'
+                # Classify device type
                 if 'SW' in name.upper():
                     device_type = 'Switch'
-                elif 'AP' in name.upper():
+                else:
                     device_type = 'Access Point'
 
                 all_devices.append({
@@ -56,7 +56,7 @@ def get_meraki_devices():
                     'Type': device_type
                 })
 
-        return sorted(all_devices, key=lambda x: (x['Hotel'], x['Name']))
+        return sorted(all_devices, key=lambda x: (x['Hotel'], x['Status'], x['Name']))
 
     except Exception as e:
         return [{'Name': 'Error', 'Status': f'Meraki API error: {str(e)}', 'Hotel': 'Error', 'Type': 'Error'}]
