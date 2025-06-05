@@ -11,7 +11,7 @@ ORG_ID = None
 HOTEL_PREFIXES = {
     'RPS': 'Royal Palm',
     'CAS': 'Cannonier',
-    'HO': 'Head Office',
+    #'HO': 'Head Office',
     'MAS': 'Mauricia',
     'SHS': 'Shandrani',
     'TBS': 'Trou aux Biches'
@@ -44,36 +44,52 @@ def get_meraki_devices():
                         hotel_name = hotel
                         break
 
+                device_type = 'Other'
+                if 'SW' in name.upper():
+                    device_type = 'Switch'
+                elif 'AP' in name.upper():
+                    device_type = 'Access Point'
+
                 all_devices.append({
                     'Name': name,
                     'Status': status,
-                    'Hotel': hotel_name
+                    'Hotel': hotel_name,
+                    'Type': device_type
                 })
 
         return sorted(all_devices, key=lambda x: (x['Hotel'], x['Name']))
 
     except Exception as e:
-        return [{'Name': 'Error', 'Status': f'Meraki API error: {str(e)}', 'Hotel': 'Error'}]
+        return [{'Name': 'Error', 'Status': f'Meraki API error: {str(e)}', 'Hotel': 'Error', 'Type': 'Error'}]
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
     selected_hotel = request.form.get('hotel', '')
     filter_status = request.form.get('status', '')
+    selected_type = request.form.get('type', '')
+
     system_data = get_meraki_devices()
 
     hotels = sorted(set(d['Hotel'] for d in system_data))
+    statuses = sorted(set(d['Status'] for d in system_data))
+    types = sorted(set(d['Type'] for d in system_data))
 
     if selected_hotel:
         system_data = [d for d in system_data if d['Hotel'] == selected_hotel]
     if filter_status:
         system_data = [d for d in system_data if d['Status'].lower() == filter_status.lower()]
+    if selected_type:
+        system_data = [d for d in system_data if d['Type'] == selected_type]
 
     return render_template('index.html',
                            system_data=system_data,
                            hotels=hotels,
+                           statuses=statuses,
+                           types=types,
                            selected_hotel=selected_hotel,
-                           filter_status=filter_status)
+                           filter_status=filter_status,
+                           selected_type=selected_type)
 
 
 @app.route('/api/devices/meraki', methods=['GET'])
