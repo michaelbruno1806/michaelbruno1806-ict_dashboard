@@ -1,0 +1,104 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meraki Devices by Hotel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #343a40;
+        }
+
+        form {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #dee2e6;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Meraki Devices</h1>
+
+    <form method="post">
+        <label>Filter by status:</label>
+        <select name="status">
+            <option value="">All</option>
+            <option value="online" {% if filter_status == 'online' %}selected{% endif %}>Online</option>
+            <option value="offline" {% if filter_status == 'offline' %}selected{% endif %}>Offline</option>
+            <option value="alerting" {% if filter_status == 'alerting' %}selected{% endif %}>Alerting</option>
+        </select>
+
+        <label>Filter by hotel:</label>
+        <select name="hotel">
+            <option value="">All</option>
+            {% for hotel in hotel_list %}
+            <option value="{{ hotel }}" {% if filter_hotel == hotel %}selected{% endif %}>{{ hotel }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Apply</button>
+    </form>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Hotel</th>
+            <th>Device Name</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for device in system_data %}
+        <tr>
+            <td>{{ device.Hotel }}</td>
+            <td>{{ device.Name }}</td>
+            <td>{{ device.Status }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
