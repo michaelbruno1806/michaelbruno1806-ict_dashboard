@@ -11,7 +11,6 @@ ORG_ID = None
 HOTEL_PREFIXES = {
     'RPS': 'Royal Palm',
     'CAS': 'Cannonier',
-    #'HO': 'Head Office',
     'MAS': 'Mauricia',
     'SHS': 'Shandrani',
     'TBS': 'Trou aux Biches'
