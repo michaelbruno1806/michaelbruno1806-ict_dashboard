@@ -1,41 +1,68 @@
-
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Meraki Devices by Hotel</title>
+    <title>ICT OPS Dashboard</title>
     <style>
+        :root {
+            --beach-blue: #007fa3;
+            --beach-light: #e6f4f1;
+            --online: #b6f7c1;
+            --offline: #f7b6b6;
+            --alerting: #f7e3b6;
+            --dormant: #cccccc;
+            --text-color: #222;
+            --bg-color: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #1e1e1e;
+            --text-color: #f1f1f1;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             padding: 20px;
+            transition: background 0.3s, color 0.3s;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: auto;
-            background: white;
+            background: var(--bg-color);
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
             text-align: center;
-            color: #343a40;
+            color: var(--beach-blue);
+            margin-bottom: 20px;
         }
 
         form {
-            margin-bottom: 20px;
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
-            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
         }
 
         select, button {
-            padding: 6px 12px;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border-radius: 5px;
             border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            background-color: var(--beach-blue);
+            color: white;
+            border: none;
+            cursor: pointer;
         }
 
         table {
@@ -43,62 +70,110 @@
             border-collapse: collapse;
         }
 
-        table, th, td {
-            border: 1px solid #dee2e6;
-        }
-
         th, td {
-            padding: 12px;
-            text-align: left;
+            padding: 10px;
+            border: 1px solid #ddd;
         }
 
         th {
-            background-color: #e9ecef;
+            background-color: var(--beach-light);
+        }
+
+        .status-online {
+            background-color: var(--online);
+        }
+
+        .status-offline {
+            background-color: var(--offline);
+        }
+
+        .status-alerting {
+            background-color: var(--alerting);
+        }
+
+        .status-dormant {
+            background-color: var(--dormant);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        .toggle-theme {
+            position: absolute;
+            top: 20px;
+            right: 20px;
         }
     </style>
 </head>
-<body>
-<div class="container">
-    <h1>Meraki Devices</h1>
+<body data-theme="light">
+    <div class="toggle-theme">
+        <button onclick="toggleTheme()">Toggle Theme</button>
+    </div>
 
-    <form method="post">
-        <label>Filter by status:</label>
-        <select name="status">
-            <option value="">All</option>
-            <option value="online" {% if filter_status == 'online' %}selected{% endif %}>Online</option>
-            <option value="offline" {% if filter_status == 'offline' %}selected{% endif %}>Offline</option>
-            <option value="alerting" {% if filter_status == 'alerting' %}selected{% endif %}>Alerting</option>
-        </select>
+    <div class="container">
+        <h1>Meraki Devices Dashboard</h1>
 
-        <label>Filter by hotel:</label>
-        <select name="hotel">
-            <option value="">All</option>
-            {% for hotel in hotel_list %}
-            <option value="{{ hotel }}" {% if filter_hotel == hotel %}selected{% endif %}>{{ hotel }}</option>
-            {% endfor %}
-        </select>
+        <form method="post">
+            <select name="hotel">
+                <option value="">All Hotels</option>
+                {% for hotel in hotels %}
+                <option value="{{ hotel }}" {% if selected_hotel == hotel %}selected{% endif %}>{{ hotel }}</option>
+                {% endfor %}
+            </select>
 
-        <button type="submit">Apply</button>
-    </form>
+            <select name="status">
+                <option value="">All Statuses</option>
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if filter_status == status %}selected{% endif %}>{{ status|capitalize }}</option>
+                {% endfor %}
+            </select>
 
-    <table>
-        <thead>
-        <tr>
-            <th>Hotel</th>
-            <th>Device Name</th>
-            <th>Status</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for device in system_data %}
-        <tr>
-            <td>{{ device.Hotel }}</td>
-            <td>{{ device.Name }}</td>
-            <td>{{ device.Status }}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-</div>
+            <select name="type">
+                <option value="">All Types</option>
+                {% for t in types %}
+                <option value="{{ t }}" {% if selected_type == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Filter</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Hotel</th>
+                    <th>Device Name</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for device in system_data %}
+                <tr class="status-{{ device.Status|lower }}">
+                    <td>{{ device.Hotel }}</td>
+                    <td>{{ device.Name }}</td>
+                    <td>{{ device.Type }}</td>
+                    <td>{{ device.Status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="footer">
+            Developed by Mika
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const current = body.getAttribute('data-theme');
+            body.setAttribute('data-theme', current === 'light' ? 'dark' : 'light');
+        }
+    </script>
 </body>
 </html>
